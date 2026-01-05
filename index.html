@@ -1,0 +1,2197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瑞士轮排位系统 - 多人协作版</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 1400px;
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-card {
+            background: var(--light-bg);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: none;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        
+        .compact-match-card {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 6px 0;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .compact-match-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .match-completed {
+            border-left-color: var(--success-color);
+            background: linear-gradient(135deg, #f8fff8, #e8f8e8);
+        }
+        
+        .match-pending {
+            border-left-color: var(--warning-color);
+            background: linear-gradient(135deg, #fff8f8, #f8e8e8);
+        }
+        
+        .rank-1 { background: linear-gradient(135deg, #ffd700, #ffed4e); }
+        .rank-2 { background: linear-gradient(135deg, #c0c0c0, #e0e0e0); }
+        .rank-3 { background: linear-gradient(135deg, #cd7f32, #e6a957); }
+        
+        .btn-custom {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: 500;
+            font-size: 14px;
+            margin: 2px;
+            transition: all 0.3s;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #0d6efd, #4361ee);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: 500;
+            font-size: 14px;
+            margin: 2px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        }
+        
+        .btn-success-custom {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .btn-danger-custom {
+            background: linear-gradient(135deg, var(--danger-color), #dc3545);
+            color: white;
+        }
+        
+        .btn-warning-custom {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: black;
+        }
+        
+        .tab-content {
+            padding: 15px;
+            background: var(--light-bg);
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .nav-tabs .nav-link {
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 6px 6px 0 0;
+        }
+        
+        .round-badge {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .collaboration-alert {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .score-input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 4px;
+            font-size: 14px;
+        }
+        
+        .vs-text {
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin: 0 5px;
+        }
+        
+        .match-result-controls {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+        
+        .match-player-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .match-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+        }
+        
+        .match-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .round-header {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .tournament-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .compact-match-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .match-result-controls {
+                justify-content: center;
+            }
+            
+            .tournament-controls {
+                flex-direction: column;
+            }
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .progress-container {
+            margin: 10px 0;
+        }
+        
+        .match-status-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .status-completed {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-pending {
+            background-color: #ffc107;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid main-container">
+        <!-- 头部 -->
+        <div class="header-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h3 fw-bold">
+                        <i class="bi bi-trophy-fill"></i> 瑞士轮排位系统
+                    </h1>
+                    <p class="small mb-0">实时协作 · 智能排位 · 自动配对</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill">
+                        <span class="online-user"></span>
+                        <span id="onlineCount">1</span> 人在线
+                        <button class="btn btn-sm btn-outline-primary ms-2" onclick="shareTournament()">
+                            <i class="bi bi-share"></i> 分享
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="row mb-3">
+            <div class="col-md-3 col-6">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted">参赛选手</small>
+                            <h5 class="mb-0" id="playerCount">0</h5>
+                        </div>
+                        <i class="bi bi-people-fill fs-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted">当前轮次</small>
+                            <h5 class="mb-0" id="currentRound">0</h5>
+                        </div>
+                        <i class="bi bi-arrow-clockwise fs-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted">已完成比赛</small>
+                            <h5 class="mb-0" id="completedMatches">0</h5>
+                        </div>
+                        <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted">平均得分</small>
+                            <h5 class="mb-0" id="averageScore">0.0</h5>
+                        </div>
+                        <i class="bi bi-graph-up fs-4 text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主标签页 -->
+        <ul class="nav nav-tabs nav-fill" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="players-tab" data-bs-toggle="tab" data-bs-target="#players" type="button">
+                    <i class="bi bi-people"></i> 选手
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pairings-tab" data-bs-toggle="tab" data-bs-target="#pairings" type="button">
+                    <i class="bi bi-shuffle"></i> 对战
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ranking-tab" data-bs-toggle="tab" data-bs-target="#ranking" type="button">
+                    <i class="bi bi-trophy"></i> 排名
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button">
+                    <i class="bi bi-clock-history"></i> 历史
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="mainTabsContent">
+            <!-- 选手管理标签页 -->
+            <div class="tab-pane fade show active" id="players" role="tabpanel">
+                <div class="row g-3">
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="bi bi-person-plus"></i> 添加选手</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">选手姓名</label>
+                                    <input type="text" class="form-control form-control-sm" id="playerName" placeholder="输入选手姓名">
+                                </div>
+                                <button class="btn btn-custom w-100" onclick="addPlayer()">
+                                    <i class="bi bi-plus-circle"></i> 添加选手
+                                </button>
+                                
+                                <div class="mt-3">
+                                    <label class="form-label">批量导入</label>
+                                    <textarea class="form-control form-control-sm" id="batchPlayers" rows="4" 
+                                              placeholder="每行一个选手姓名&#10;例如：&#10;张三&#10;李四&#10;王五"></textarea>
+                                    <button class="btn btn-custom w-100 mt-2" onclick="importPlayers()">
+                                        <i class="bi bi-file-earmark-arrow-up"></i> 导入选手
+                                    </button>
+                                </div>
+                                
+                                <div class="mt-3 action-buttons">
+                                    <button class="btn btn-sm btn-warning-custom flex-fill" onclick="generateDemoPlayers()">
+                                        <i class="bi bi-magic"></i> 示例选手
+                                    </button>
+                                    <button class="btn btn-sm btn-danger-custom flex-fill" onclick="clearAllPlayers()">
+                                        <i class="bi bi-trash"></i> 清空选手
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0"><i class="bi bi-list-ol"></i> 选手列表</h6>
+                                    <div>
+                                        <button class="btn btn-sm btn-light" onclick="sortPlayersByScore()">
+                                            <i class="bi bi-sort-down"></i> 按分排序
+                                        </button>
+                                        <button class="btn btn-sm btn-light" onclick="exportPlayers()">
+                                            <i class="bi bi-download"></i> 导出
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th width="40">#</th>
+                                                <th>选手</th>
+                                                <th width="80">得分</th>
+                                                <th width="90">隐藏分</th>
+                                                <th width="60">胜负</th>
+                                                <th width="80">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="playersList">
+                                            <!-- 选手列表动态生成 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 对战排位标签页 -->
+            <div class="tab-pane fade" id="pairings" role="tabpanel">
+                <div class="row g-3">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-shuffle"></i> 第 <span id="pairingRound">1</span> 轮对战表
+                                        <span class="badge bg-primary ms-2" id="matchProgress">0/0</span>
+                                    </h6>
+                                    <div>
+                                        <button class="btn btn-sm btn-custom me-2" onclick="generatePairings()" id="generateBtn">
+                                            <i class="bi bi-shuffle"></i> 生成对战
+                                        </button>
+                                        <button class="btn btn-sm btn-success-custom" onclick="startNextRound()" id="nextRoundBtn" disabled>
+                                            <i class="bi bi-arrow-right"></i> 下一轮
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 锦标赛控制区域 -->
+                            <div class="card-body">
+                                <div class="tournament-controls">
+                                    <!-- 新增：开始新比赛按钮 -->
+                                    <button class="btn btn-primary-custom" onclick="newTournament()" id="newTournamentBtn">
+                                        <i class="bi bi-plus-circle"></i> 开始新比赛
+                                    </button>
+                                    
+                                    <!-- 结束比赛按钮 -->
+                                    <button class="btn btn-danger-custom" onclick="endTournament()" id="endTournamentBtn">
+                                        <i class="bi bi-flag-fill"></i> 结束比赛
+                                    </button>
+                                    
+                                    <!-- 全部提交按钮 -->
+                                    <button class="btn btn-success-custom" onclick="submitAllResults()" id="submitAllBtn" disabled>
+                                        <i class="bi bi-check-all"></i> 全部提交
+                                    </button>
+                                    
+                                    <!-- 其他控制按钮 -->
+                                    <div class="btn-group">
+                                        <button class="btn btn-warning-custom" onclick="autoGenerateResults()">
+                                            <i class="bi bi-dice-5"></i> 自动结果
+                                        </button>
+                                        <button class="btn btn-outline-warning" onclick="resetCurrentRound()">
+                                            <i class="bi bi-arrow-counterclockwise"></i> 重置本轮
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="clearPairings()">
+                                            <i class="bi bi-x-circle"></i> 清空对战
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- 比赛进度条 -->
+                                <div class="progress-container">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small>比赛进度</small>
+                                        <small id="progressText">0%</small>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div id="matchProgressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 对战表容器 -->
+                                <div id="pairingsContainer" class="mt-3">
+                                    <div class="alert alert-info m-2">
+                                        <i class="bi bi-info-circle"></i> 点击"生成对战"按钮来创建当前轮次的对战安排
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0"><i class="bi bi-gear"></i> 排位设置</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label form-label-sm">瑞士轮轮数</label>
+                                    <input type="number" class="form-control form-control-sm" id="totalRounds" value="4" min="1" max="10">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label form-label-sm">胜场得分</label>
+                                    <input type="number" class="form-control form-control-sm" id="winPoints" value="7" min="0">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label form-label-sm">平局得分</label>
+                                    <input type="number" class="form-control form-control-sm" id="drawPoints" value="3" min="0">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label form-label-sm">隐藏分权重</label>
+                                    <input type="number" class="form-control form-control-sm" id="hiddenWeight" value="0.01" step="0.01" min="0" max="1">
+                                    <small class="text-muted">对手总分的百分比（小分）</small>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="avoidRematch" checked>
+                                    <label class="form-check-label">避免重复对战</label>
+                                </div>
+                                <button class="btn btn-custom w-100" onclick="saveSettings()">
+                                    <i class="bi bi-check-circle"></i> 保存设置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实时排名标签页 -->
+            <div class="tab-pane fade" id="ranking" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0"><i class="bi bi-trophy"></i> 实时排名榜</h6>
+                                    <button class="btn btn-sm btn-light" onclick="exportRanking()">
+                                        <i class="bi bi-download"></i> 导出排名
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-2">
+                                <!-- 前三名展示 -->
+                                <div class="row mb-3" id="topThree" style="display: none;">
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card rank-2 text-center p-3">
+                                            <h4>🥈</h4>
+                                            <h6 id="secondPlace">-</h6>
+                                            <small id="secondScore">0分</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card rank-1 text-center p-4">
+                                            <h3>🏆</h3>
+                                            <h5 id="firstPlace">-</h5>
+                                            <small id="firstScore">0分</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card rank-3 text-center p-3">
+                                            <h4>🥉</h4>
+                                            <h6 id="thirdPlace">-</h6>
+                                            <small id="thirdScore">0分</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 排名表格 -->
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th width="50">排名</th>
+                                                <th>选手</th>
+                                                <th width="70">得分</th>
+                                                <th width="80">隐藏分</th>
+                                                <th width="70">总分</th>
+                                                <th width="40">胜</th>
+                                                <th width="40">平</th>
+                                                <th width="40">负</th>
+                                                <th width="80">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="rankingList">
+                                            <!-- 排名动态生成 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 比赛历史标签页 -->
+            <div class="tab-pane fade" id="history" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0"><i class="bi bi-clock-history"></i> 比赛历史记录</h6>
+                            </div>
+                            <div class="card-body p-2">
+                                <div id="roundHistory">
+                                    <!-- 历史轮次动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 协作通知容器 -->
+    <div id="collaborationAlerts"></div>
+
+    <!-- 开始新比赛确认模态框 -->
+    <div class="modal fade" id="newTournamentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> 开始新比赛</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        开始新比赛将保留当前选手名单，但会：
+                    </div>
+                    <ul>
+                        <li>重置所有选手的得分和比赛记录</li>
+                        <li>清空所有对战安排</li>
+                        <li>重置当前轮次为0</li>
+                        <li>清除比赛历史记录</li>
+                    </ul>
+                    
+                    <div class="mt-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="keepPlayers" checked>
+                            <label class="form-check-label">保留当前选手名单</label>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="keepSettings" checked>
+                            <label class="form-check-label">保留当前比赛设置</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 p-3 bg-light rounded">
+                        <small class="text-muted">当前选手: <span id="currentPlayerCount">0</span> 人</small><br>
+                        <small class="text-muted">当前轮次: <span id="currentRoundInfo">0</span> / <span id="totalRoundsInfo">0</span></small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmNewTournament()">开始新比赛</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结束比赛确认模态框 -->
+    <div class="modal fade" id="endTournamentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-flag-fill"></i> 结束比赛确认</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>警告：此操作不可逆！</strong>
+                    </div>
+                    <p>结束比赛将执行以下操作：</p>
+                    <ul>
+                        <li>所有选手得分归零</li>
+                        <li>清空所有比赛记录</li>
+                        <li>重置对战表</li>
+                        <li>清除历史记录</li>
+                    </ul>
+                    <p>确定要结束当前比赛吗？</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmEndTournament()">确认结束比赛</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全部提交确认模态框 -->
+    <div class="modal fade" id="submitAllModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-check-all"></i> 全部提交确认</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确认提交第 <span id="submitRoundNumber">1</span> 轮所有比赛结果吗？</p>
+                    <div id="pendingMatchesList" class="mt-3">
+                        <!-- 待提交比赛列表 -->
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle"></i>
+                        此操作将提交所有已输入结果的比赛
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-success" onclick="confirmSubmitAllResults()">确认全部提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // 全局变量
+        let tournament = {
+            players: [],
+            currentRound: 0,
+            totalRounds: 4,
+            pairings: [],
+            history: [],
+            tournamentEnded: false,
+            settings: {
+                winPoints: 7,
+                drawPoints: 3,
+                hiddenWeight: 0.01,
+                avoidRematch: true
+            },
+            collaboration: {
+                roomId: generateRoomId(),
+                lastUpdate: Date.now()
+            }
+        };
+
+        // 生成房间ID
+        function generateRoomId() {
+            return 'room-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTournament();
+            setupCollaboration();
+            updateStats();
+            renderPlayersList();
+            updateGenerateButton();
+            updateSubmitAllButton();
+            updateProgress();
+        });
+
+        // 协作功能
+        function setupCollaboration() {
+            // 模拟在线人数
+            setInterval(() => {
+                const onlineUsers = Math.floor(Math.random() * 5) + 1;
+                document.getElementById('onlineCount').textContent = onlineUsers;
+            }, 5000);
+        }
+
+        // 显示协作通知
+        function showCollaborationAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show collaboration-alert`;
+            alertDiv.innerHTML = `
+                <i class="bi bi-${type === 'info' ? 'info-circle' : type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.getElementById('collaborationAlerts').appendChild(alertDiv);
+            setTimeout(() => {
+                if (alertDiv.parentNode) alertDiv.remove();
+            }, 5000);
+        }
+
+        // 开始新比赛
+        function newTournament() {
+            // 更新模态框中的信息
+            document.getElementById('currentPlayerCount').textContent = tournament.players.length;
+            document.getElementById('currentRoundInfo').textContent = tournament.currentRound;
+            document.getElementById('totalRoundsInfo').textContent = tournament.totalRounds;
+            
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('newTournamentModal'));
+            modal.show();
+        }
+
+        // 确认开始新比赛
+        function confirmNewTournament() {
+            const keepPlayers = document.getElementById('keepPlayers').checked;
+            const keepSettings = document.getElementById('keepSettings').checked;
+            
+            if (keepPlayers) {
+                // 保留选手，但重置其比赛数据
+                tournament.players.forEach(player => {
+                    player.score = 0;
+                    player.hiddenScore = 0;
+                    player.wins = 0;
+                    player.draws = 0;
+                    player.losses = 0;
+                    player.opponents = [];
+                    player.matchHistory = [];
+                });
+            } else {
+                // 不保留选手，清空选手列表
+                tournament.players = [];
+            }
+            
+            if (!keepSettings) {
+                // 重置为默认设置
+                tournament.totalRounds = 4;
+                tournament.settings = {
+                    winPoints: 7,
+                    drawPoints: 3,
+                    hiddenWeight: 0.01,
+                    avoidRematch: true
+                };
+                
+                // 更新表单中的设置值
+                document.getElementById('totalRounds').value = tournament.totalRounds;
+                document.getElementById('winPoints').value = tournament.settings.winPoints;
+                document.getElementById('drawPoints').value = tournament.settings.drawPoints;
+                document.getElementById('hiddenWeight').value = tournament.settings.hiddenWeight;
+                document.getElementById('avoidRematch').checked = tournament.settings.avoidRematch;
+            }
+            
+            // 重置比赛数据
+            tournament.currentRound = 0;
+            tournament.pairings = [];
+            tournament.history = [];
+            tournament.tournamentEnded = false;
+            
+            // 更新轮次显示
+            document.getElementById('pairingRound').textContent = '1';
+            document.getElementById('currentRound').textContent = '0';
+            
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('newTournamentModal'));
+            modal.hide();
+            
+            // 保存并更新UI
+            saveTournament();
+            renderPlayersList();
+            renderPairings();
+            renderRanking();
+            updateStats();
+            updateGenerateButton();
+            updateSubmitAllButton();
+            updateProgress();
+            
+            // 更新按钮状态
+            document.getElementById('nextRoundBtn').disabled = true;
+            
+            showCollaborationAlert('新比赛已开始！', 'success');
+        }
+
+        // 更新生成按钮状态
+        function updateGenerateButton() {
+            const btn = document.getElementById('generateBtn');
+            const newBtn = document.getElementById('newTournamentBtn');
+            
+            if (tournament.tournamentEnded) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-shuffle"></i> 比赛已结束';
+                newBtn.innerHTML = '<i class="bi bi-plus-circle"></i> 开始新比赛';
+                newBtn.disabled = false;
+                return;
+            }
+            
+            if (tournament.players.length >= 2) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-shuffle"></i> 生成对战';
+                newBtn.innerHTML = '<i class="bi bi-plus-circle"></i> 开始新比赛';
+                newBtn.disabled = false;
+            } else {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-shuffle"></i> 需要至少2名选手';
+                newBtn.innerHTML = '<i class="bi bi-plus-circle"></i> 开始新比赛';
+                newBtn.disabled = false;
+            }
+        }
+
+        // 更新全部提交按钮状态
+        function updateSubmitAllButton() {
+            const submitAllBtn = document.getElementById('submitAllBtn');
+            if (tournament.pairings.length === 0) {
+                submitAllBtn.disabled = true;
+                submitAllBtn.innerHTML = '<i class="bi bi-check-all"></i> 全部提交';
+            } else {
+                const pendingMatches = tournament.pairings.filter(m => 
+                    m.result === null && m.player2 !== null
+                ).length;
+                
+                if (pendingMatches > 0) {
+                    submitAllBtn.disabled = false;
+                    submitAllBtn.innerHTML = `<i class="bi bi-check-all"></i> 全部提交 (${pendingMatches}场待提交)`;
+                } else {
+                    submitAllBtn.disabled = true;
+                    submitAllBtn.innerHTML = '<i class="bi bi-check-all"></i> 已全部提交';
+                }
+            }
+        }
+
+        // 更新比赛进度
+        function updateProgress() {
+            if (tournament.pairings.length === 0) {
+                document.getElementById('matchProgress').textContent = '0/0';
+                document.getElementById('progressText').textContent = '0%';
+                document.getElementById('matchProgressBar').style.width = '0%';
+                return;
+            }
+            
+            const totalMatches = tournament.pairings.filter(m => m.player2 !== null).length;
+            const completedMatches = tournament.pairings.filter(m => 
+                m.result !== null && m.player2 !== null
+            ).length;
+            
+            const progress = totalMatches > 0 ? Math.round((completedMatches / totalMatches) * 100) : 0;
+            
+            document.getElementById('matchProgress').textContent = `${completedMatches}/${totalMatches}`;
+            document.getElementById('progressText').textContent = `${progress}%`;
+            document.getElementById('matchProgressBar').style.width = `${progress}%`;
+            
+            // 更新进度条颜色
+            const progressBar = document.getElementById('matchProgressBar');
+            if (progress < 50) {
+                progressBar.className = 'progress-bar bg-warning';
+            } else if (progress < 100) {
+                progressBar.className = 'progress-bar bg-info';
+            } else {
+                progressBar.className = 'progress-bar bg-success';
+            }
+        }
+
+        // 结束比赛
+        function endTournament() {
+            if (tournament.tournamentEnded) {
+                showCollaborationAlert('比赛已经结束', 'warning');
+                return;
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('endTournamentModal'));
+            modal.show();
+        }
+
+        // 确认结束比赛
+        function confirmEndTournament() {
+            // 重置所有选手数据
+            tournament.players.forEach(player => {
+                player.score = 0;
+                player.hiddenScore = 0;
+                player.wins = 0;
+                player.draws = 0;
+                player.losses = 0;
+                player.opponents = [];
+                player.matchHistory = [];
+            });
+            
+            // 重置比赛数据
+            tournament.currentRound = 0;
+            tournament.pairings = [];
+            tournament.history = [];
+            tournament.tournamentEnded = true;
+            
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('endTournamentModal'));
+            modal.hide();
+            
+            // 保存并更新UI
+            saveTournament();
+            renderPlayersList();
+            renderPairings();
+            renderRanking();
+            updateStats();
+            updateGenerateButton();
+            updateSubmitAllButton();
+            updateProgress();
+            
+            showCollaborationAlert('比赛已结束，所有数据已重置', 'success');
+        }
+
+        // 全部提交
+        function submitAllResults() {
+            if (tournament.pairings.length === 0) {
+                showCollaborationAlert('当前没有对战安排', 'warning');
+                return;
+            }
+            
+            // 获取所有有结果的待提交比赛
+            const pendingMatches = [];
+            tournament.pairings.forEach((match, index) => {
+                if (match.result === null && match.player2 !== null) {
+                    const score1 = document.getElementById(`score_${index}_1`);
+                    const score2 = document.getElementById(`score_${index}_2`);
+                    
+                    if (score1 && score2) {
+                        const s1 = parseInt(score1.value) || 0;
+                        const s2 = parseInt(score2.value) || 0;
+                        
+                        if (s1 > 0 || s2 > 0) {
+                            pendingMatches.push({
+                                index: index,
+                                match: match,
+                                score1: s1,
+                                score2: s2
+                            });
+                        }
+                    }
+                }
+            });
+            
+            if (pendingMatches.length === 0) {
+                showCollaborationAlert('没有可以提交的比赛结果', 'warning');
+                return;
+            }
+            
+            // 显示确认模态框
+            document.getElementById('submitRoundNumber').textContent = tournament.currentRound;
+            
+            const matchesList = document.getElementById('pendingMatchesList');
+            matchesList.innerHTML = '';
+            
+            pendingMatches.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'alert alert-light border mb-2';
+                div.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>${item.match.player1.name}</strong> vs <strong>${item.match.player2.name}</strong>
+                        </span>
+                        <span class="badge bg-primary">${item.score1}:${item.score2}</span>
+                    </div>
+                `;
+                matchesList.appendChild(div);
+            });
+            
+            const modal = new bootstrap.Modal(document.getElementById('submitAllModal'));
+            modal.show();
+        }
+
+        // 确认全部提交
+        function confirmSubmitAllResults() {
+            let submittedCount = 0;
+            
+            tournament.pairings.forEach((match, index) => {
+                if (match.result === null && match.player2 !== null) {
+                    const score1Input = document.getElementById(`score_${index}_1`);
+                    const score2Input = document.getElementById(`score_${index}_2`);
+                    
+                    if (score1Input && score2Input) {
+                        const score1 = parseInt(score1Input.value) || 0;
+                        const score2 = parseInt(score2Input.value) || 0;
+                        
+                        if (score1 > 0 || score2 > 0) {
+                            // 检查分数是否合法
+                            const validScores = [0, tournament.settings.drawPoints, tournament.settings.winPoints];
+                            if (validScores.includes(score1) && validScores.includes(score2)) {
+                                match.result = {
+                                    player1: score1,
+                                    player2: score2
+                                };
+                                
+                                // 更新选手数据
+                                updatePlayerFromMatch(match.player1.id, match.player2.id, score1, score2);
+                                updatePlayerFromMatch(match.player2.id, match.player1.id, score2, score1);
+                                
+                                // 保存到历史
+                                tournament.history.push({
+                                    round: tournament.currentRound,
+                                    match: {
+                                        player1: match.player1.name,
+                                        player2: match.player2.name,
+                                        result: match.result
+                                    },
+                                    timestamp: Date.now()
+                                });
+                                
+                                submittedCount++;
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('submitAllModal'));
+            modal.hide();
+            
+            // 保存并更新UI
+            saveTournament();
+            renderPairings();
+            updateStats();
+            renderRanking();
+            updateSubmitAllButton();
+            updateProgress();
+            
+            showCollaborationAlert(`已提交${submittedCount}场比赛结果`, 'success');
+        }
+
+        // 添加选手
+        function addPlayer() {
+            if (tournament.tournamentEnded) {
+                showCollaborationAlert('比赛已结束，无法添加选手', 'warning');
+                return;
+            }
+            
+            const name = document.getElementById('playerName').value.trim();
+            
+            if (!name) {
+                alert('请输入选手姓名');
+                return;
+            }
+            
+            if (tournament.players.some(p => p.name === name)) {
+                alert('选手姓名已存在');
+                return;
+            }
+            
+            const player = {
+                id: Date.now() + Math.random(),
+                name: name,
+                rating: 1500,
+                score: 0,
+                hiddenScore: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                opponents: [],
+                matchHistory: []
+            };
+            
+            tournament.players.push(player);
+            document.getElementById('playerName').value = '';
+            saveTournament();
+            renderPlayersList();
+            updateStats();
+            updateGenerateButton();
+            showCollaborationAlert(`选手"${name}"已添加`);
+        }
+
+        // 生成示例选手
+        function generateDemoPlayers() {
+            if (tournament.tournamentEnded) {
+                showCollaborationAlert('比赛已结束，无法添加选手', 'warning');
+                return;
+            }
+            
+            const demoNames = [
+                '张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十',
+                '郑十一', '王十二', '陈十三', '林十四', '黄十五', '杨十六', '朱十七', '何十八',
+                '高十九', '罗二十', '郑二一', '谢二二', '唐二三', '许二四', '邓二五', '萧二六',
+                '冯二七', '程二八', '曹二九', '袁三十', '彭三一', '曾三二', '刘三三', '陈三四'
+            ];
+            
+            let added = 0;
+            demoNames.forEach(name => {
+                if (!tournament.players.some(p => p.name === name)) {
+                    const player = {
+                        id: Date.now() + Math.random(),
+                        name: name,
+                        rating: Math.floor(Math.random() * 500) + 1300,
+                        score: 0,
+                        hiddenScore: 0,
+                        wins: 0,
+                        draws: 0,
+                        losses: 0,
+                        opponents: [],
+                        matchHistory: []
+                    };
+                    tournament.players.push(player);
+                    added++;
+                }
+            });
+            
+            saveTournament();
+            renderPlayersList();
+            updateStats();
+            updateGenerateButton();
+            showCollaborationAlert(`${added}名示例选手已生成`);
+        }
+
+        // 导入选手
+        function importPlayers() {
+            if (tournament.tournamentEnded) {
+                showCollaborationAlert('比赛已结束，无法添加选手', 'warning');
+                return;
+            }
+            
+            const text = document.getElementById('batchPlayers').value.trim();
+            if (!text) {
+                alert('请输入选手姓名');
+                return;
+            }
+            
+            const names = text.split('\n').map(name => name.trim()).filter(name => name);
+            let added = 0;
+            
+            names.forEach(name => {
+                if (!tournament.players.some(p => p.name === name)) {
+                    const player = {
+                        id: Date.now() + Math.random(),
+                        name: name,
+                        rating: 1500,
+                        score: 0,
+                        hiddenScore: 0,
+                        wins: 0,
+                        draws: 0,
+                        losses: 0,
+                        opponents: [],
+                        matchHistory: []
+                    };
+                    tournament.players.push(player);
+                    added++;
+                }
+            });
+            
+            document.getElementById('batchPlayers').value = '';
+            saveTournament();
+            renderPlayersList();
+            updateStats();
+            updateGenerateButton();
+            showCollaborationAlert(`成功导入${added}名选手`);
+        }
+
+        // 清空所有选手
+        function clearAllPlayers() {
+            if (!confirm('确定清空所有选手吗？')) return;
+            
+            tournament.players = [];
+            tournament.currentRound = 0;
+            tournament.pairings = [];
+            tournament.history = [];
+            tournament.tournamentEnded = false;
+            
+            saveTournament();
+            renderPlayersList();
+            updateStats();
+            updateGenerateButton();
+            updateSubmitAllButton();
+            updateProgress();
+            showCollaborationAlert('所有选手已清空');
+        }
+
+        // 渲染选手列表
+        function renderPlayersList() {
+            const container = document.getElementById('playersList');
+            container.innerHTML = '';
+            
+            if (tournament.players.length === 0) {
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-3">
+                            <i class="bi bi-people"></i> 暂无选手，请添加选手
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tournament.players.forEach((player, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div style="width: 24px; height: 24px; background: #e9ecef; border-radius: 50%; 
+                                 display: flex; align-items: center; justify-content: center; margin-right: 8px;">
+                                <i class="bi bi-person" style="font-size: 12px;"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">${player.name}</div>
+                                <small class="text-muted">评分: ${player.rating}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge ${player.score > 0 ? 'bg-primary' : 'bg-secondary'} rounded-pill">${player.score}</span>
+                    </td>
+                    <td>${player.hiddenScore.toFixed(1)}</td>
+                    <td>
+                        <small>${player.wins}/${player.draws}/${player.losses}</small>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="editPlayer(${player.id})" title="编辑">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="removePlayer(${player.id})" title="删除">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+            
+            document.getElementById('playerCount').textContent = tournament.players.length;
+        }
+
+        // 删除选手
+        function removePlayer(playerId) {
+            if (!confirm('确定删除该选手吗？')) return;
+            
+            tournament.players = tournament.players.filter(p => p.id !== playerId);
+            saveTournament();
+            renderPlayersList();
+            updateStats();
+            updateGenerateButton();
+        }
+
+        // 编辑选手
+        function editPlayer(playerId) {
+            const player = tournament.players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            const newName = prompt('修改选手姓名：', player.name);
+            if (newName && newName.trim()) {
+                player.name = newName.trim();
+                saveTournament();
+                renderPlayersList();
+                showCollaborationAlert(`选手姓名已修改为"${newName}"`);
+            }
+        }
+
+        // 计算隐藏分 - 对手总分的1%
+        function calculateHiddenScores() {
+            tournament.players.forEach(player => {
+                if (player.opponents.length === 0) {
+                    player.hiddenScore = 0;
+                    return;
+                }
+                
+                let totalOpponentScore = 0;
+                player.opponents.forEach(oppId => {
+                    const opponent = tournament.players.find(p => p.id === oppId);
+                    if (opponent) {
+                        totalOpponentScore += opponent.score;
+                    }
+                });
+                
+                player.hiddenScore = totalOpponentScore * tournament.settings.hiddenWeight;
+            });
+        }
+
+        // 检查是否已对战过
+        function hasPlayedBefore(player1Id, player2Id) {
+            const player1 = tournament.players.find(p => p.id === player1Id);
+            return player1 && player1.opponents.includes(player2Id);
+        }
+
+        // 生成对战表（瑞士轮核心算法）- 优化版
+        function generatePairings() {
+            if (tournament.tournamentEnded) {
+                showCollaborationAlert('比赛已结束，无法生成对战', 'warning');
+                return;
+            }
+            
+            if (tournament.players.length < 2) {
+                alert('至少需要2名选手才能生成对战表');
+                return;
+            }
+            
+            if (tournament.currentRound >= tournament.totalRounds) {
+                alert('所有轮次已完成！');
+                return;
+            }
+            
+            tournament.currentRound++;
+            tournament.tournamentEnded = false;
+            
+            document.getElementById('pairingRound').textContent = tournament.currentRound;
+            document.getElementById('currentRound').textContent = tournament.currentRound;
+            
+            // 计算隐藏分（对手总分的1%）
+            calculateHiddenScores();
+            
+            // 排序选手 - 按总分（得分+隐藏分）排名
+            const sortedPlayers = [...tournament.players].sort((a, b) => {
+                const totalA = a.score + a.hiddenScore;
+                const totalB = b.score + b.hiddenScore;
+                // 如果总分相同，按得分排序
+                if (Math.abs(totalB - totalA) < 0.01) {
+                    return b.score - a.score;
+                }
+                return totalB - totalA;
+            });
+            
+            const pairings = [];
+            const matched = new Set();
+            
+            // 第一轮：随机配对
+            if (tournament.currentRound === 1) {
+                const shuffled = [...sortedPlayers].sort(() => Math.random() - 0.5);
+                for (let i = 0; i < shuffled.length; i += 2) {
+                    if (i + 1 < shuffled.length) {
+                        pairings.push({
+                            player1: shuffled[i],
+                            player2: shuffled[i + 1],
+                            round: tournament.currentRound,
+                            result: null
+                        });
+                        matched.add(shuffled[i].id);
+                        matched.add(shuffled[i + 1].id);
+                    }
+                }
+            } else {
+                // 后续轮次：瑞士轮配对
+                // 按整分数分组
+                const scoreGroups = {};
+                sortedPlayers.forEach(player => {
+                    const scoreKey = Math.floor(player.score);
+                    if (!scoreGroups[scoreKey]) scoreGroups[scoreKey] = [];
+                    scoreGroups[scoreKey].push(player);
+                });
+                
+                // 按分数降序处理各分组
+                const sortedScores = Object.keys(scoreGroups).sort((a, b) => b - a);
+                
+                for (const score of sortedScores) {
+                    const group = scoreGroups[score];
+                    
+                    for (let i = 0; i < group.length; i++) {
+                        const player = group[i];
+                        if (matched.has(player.id)) continue;
+                        
+                        // 1. 优先匹配同分组内未对战的对手
+                        let foundMatch = false;
+                        for (let j = i + 1; j < group.length; j++) {
+                            const opponent = group[j];
+                            if (matched.has(opponent.id)) continue;
+                            
+                            const hasPlayed = tournament.settings.avoidRematch ? 
+                                hasPlayedBefore(player.id, opponent.id) : false;
+                            
+                            if (!hasPlayed) {
+                                pairings.push({
+                                    player1: player,
+                                    player2: opponent,
+                                    round: tournament.currentRound,
+                                    result: null
+                                });
+                                matched.add(player.id);
+                                matched.add(opponent.id);
+                                foundMatch = true;
+                                break;
+                            }
+                        }
+                        
+                        if (foundMatch) continue;
+                        
+                        // 2. 如果同分组没有合适对手，寻找排名最接近的未匹配对手
+                        const allUnmatched = sortedPlayers.filter(p => 
+                            !matched.has(p.id) && p.id !== player.id
+                        );
+                        
+                        if (allUnmatched.length > 0) {
+                            // 找到排名最接近的对手
+                            const playerIndex = sortedPlayers.findIndex(p => p.id === player.id);
+                            let bestOpponent = null;
+                            let minRankDiff = Infinity;
+                            
+                            for (const opponent of allUnmatched) {
+                                const opponentIndex = sortedPlayers.findIndex(p => p.id === opponent.id);
+                                const rankDiff = Math.abs(playerIndex - opponentIndex);
+                                
+                                const hasPlayed = tournament.settings.avoidRematch ? 
+                                    hasPlayedBefore(player.id, opponent.id) : false;
+                                
+                                // 优先选择排名接近且未对战过的对手
+                                if (!hasPlayed && rankDiff < minRankDiff) {
+                                    minRankDiff = rankDiff;
+                                    bestOpponent = opponent;
+                                }
+                            }
+                            
+                            // 如果找到未对战过的对手
+                            if (bestOpponent) {
+                                pairings.push({
+                                    player1: player,
+                                    player2: bestOpponent,
+                                    round: tournament.currentRound,
+                                    result: null
+                                });
+                                matched.add(player.id);
+                                matched.add(bestOpponent.id);
+                                continue;
+                            }
+                            
+                            // 如果所有可能的对手都已对战过，但允许重复对战，选择排名最接近的
+                            if (!tournament.settings.avoidRematch) {
+                                for (const opponent of allUnmatched) {
+                                    const opponentIndex = sortedPlayers.findIndex(p => p.id === opponent.id);
+                                    const rankDiff = Math.abs(playerIndex - opponentIndex);
+                                    
+                                    if (rankDiff < minRankDiff) {
+                                        minRankDiff = rankDiff;
+                                        bestOpponent = opponent;
+                                    }
+                                }
+                                
+                                if (bestOpponent) {
+                                    pairings.push({
+                                        player1: player,
+                                        player2: bestOpponent,
+                                        round: tournament.currentRound,
+                                        result: null
+                                    });
+                                    matched.add(player.id);
+                                    matched.add(bestOpponent.id);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // 3. 处理任何剩余的未匹配选手（按排名顺序配对）
+                const finalUnmatched = sortedPlayers.filter(p => !matched.has(p.id));
+                for (let i = 0; i < finalUnmatched.length; i += 2) {
+                    if (i + 1 < finalUnmatched.length) {
+                        pairings.push({
+                            player1: finalUnmatched[i],
+                            player2: finalUnmatched[i + 1],
+                            round: tournament.currentRound,
+                            result: null
+                        });
+                        matched.add(finalUnmatched[i].id);
+                        matched.add(finalUnmatched[i + 1].id);
+                    }
+                }
+            }
+            
+            // 处理轮空（奇数人数）
+            if (tournament.players.length % 2 === 1) {
+                const unmatched = sortedPlayers.filter(p => !matched.has(p.id));
+                if (unmatched.length === 1) {
+                    const byePlayer = unmatched[0];
+                    pairings.push({
+                        player1: byePlayer,
+                        player2: null,
+                        round: tournament.currentRound,
+                        result: { player1: tournament.settings.winPoints, player2: 0 }
+                    });
+                    showCollaborationAlert(`${byePlayer.name} 本轮轮空，自动获胜`);
+                }
+            }
+            
+            tournament.pairings = pairings;
+            renderPairings();
+            saveTournament();
+            
+            // 更新按钮状态
+            const nextBtn = document.getElementById('nextRoundBtn');
+            nextBtn.disabled = tournament.currentRound >= tournament.totalRounds;
+            
+            updateSubmitAllButton();
+            updateProgress();
+            showCollaborationAlert(`第${tournament.currentRound}轮对战表已生成`);
+        }
+
+        // 渲染对战表（紧凑版本）
+        function renderPairings() {
+            const container = document.getElementById('pairingsContainer');
+            container.innerHTML = '';
+            
+            if (tournament.pairings.length === 0) {
+                container.innerHTML = '<div class="alert alert-info m-2">暂无对战安排</div>';
+                return;
+            }
+            
+            tournament.pairings.forEach((match, index) => {
+                const matchCard = document.createElement('div');
+                matchCard.className = match.result ? 'compact-match-card match-completed' : 'compact-match-card match-pending';
+                
+                if (match.player2 === null) {
+                    // 轮空情况
+                    matchCard.innerHTML = `
+                        <div class="match-player-info">
+                            <span class="round-badge">${index + 1}</span>
+                            <div>
+                                <strong>${match.player1.name}</strong>
+                                <div class="text-success small">
+                                    <i class="bi bi-emoji-smile"></i> 轮空获胜 +${tournament.settings.winPoints}分
+                                </div>
+                            </div>
+                        </div>
+                        <div class="match-actions">
+                            <span class="badge bg-success">轮空</span>
+                            <span class="badge bg-primary">已结束</span>
+                        </div>
+                    `;
+                } else {
+                    const hasResult = match.result !== null;
+                    
+                    matchCard.innerHTML = `
+                        <div class="match-player-info">
+                            <span class="round-badge">${index + 1}</span>
+                            <div>
+                                <strong>${match.player1.name}</strong>
+                                <small class="text-muted d-block">${match.player1.score}分</small>
+                            </div>
+                        </div>
+                        
+                        <div class="match-center">
+                            <span class="vs-text">VS</span>
+                        </div>
+                        
+                        <div class="match-player-info">
+                            <div class="text-end">
+                                <strong>${match.player2.name}</strong>
+                                <small class="text-muted d-block">${match.player2.score}分</small>
+                            </div>
+                        </div>
+                    `;
+                    
+                    if (hasResult) {
+                        const isPlayer1Winner = match.result.player1 > match.result.player2;
+                        const isPlayer2Winner = match.result.player2 > match.result.player1;
+                        const isDraw = match.result.player1 === match.result.player2;
+                        
+                        const resultSpan = document.createElement('span');
+                        resultSpan.className = `badge ${isDraw ? 'bg-info' : 'bg-success'} match-status-badge`;
+                        resultSpan.textContent = isDraw ? '平局' : (isPlayer1Winner ? match.player1.name + '胜' : match.player2.name + '胜');
+                        matchCard.appendChild(resultSpan);
+                    } else {
+                        const controls = document.createElement('div');
+                        controls.className = 'match-result-controls';
+                        controls.innerHTML = `
+                            <input type="number" class="score-input" id="score_${index}_1" placeholder="分" min="0" max="${tournament.settings.winPoints}">
+                            <button class="btn btn-sm btn-success" onclick="setResult(${index}, 'win1')">
+                                ${match.player1.name}胜
+                            </button>
+                            <button class="btn btn-sm btn-info" onclick="setResult(${index}, 'draw')">
+                                平局
+                            </button>
+                            <button class="btn btn-sm btn-success" onclick="setResult(${index}, 'win2')">
+                                ${match.player2.name}胜
+                            </button>
+                            <input type="number" class="score-input" id="score_${index}_2" placeholder="分" min="0" max="${tournament.settings.winPoints}">
+                            <button class="btn btn-sm btn-primary" onclick="submitResult(${index})">
+                                提交
+                            </button>
+                        `;
+                        matchCard.appendChild(controls);
+                    }
+                }
+                
+                container.appendChild(matchCard);
+            });
+        }
+
+        // 设置结果
+        function setResult(matchIndex, resultType) {
+            const match = tournament.pairings[matchIndex];
+            const winPoints = tournament.settings.winPoints;
+            const drawPoints = tournament.settings.drawPoints;
+            
+            switch(resultType) {
+                case 'win1':
+                    document.getElementById(`score_${matchIndex}_1`).value = winPoints;
+                    document.getElementById(`score_${matchIndex}_2`).value = 0;
+                    break;
+                case 'win2':
+                    document.getElementById(`score_${matchIndex}_1`).value = 0;
+                    document.getElementById(`score_${matchIndex}_2`).value = winPoints;
+                    break;
+                case 'draw':
+                    document.getElementById(`score_${matchIndex}_1`).value = drawPoints;
+                    document.getElementById(`score_${matchIndex}_2`).value = drawPoints;
+                    break;
+            }
+        }
+
+        // 提交单场比赛结果
+        function submitResult(matchIndex) {
+            const match = tournament.pairings[matchIndex];
+            
+            if (match.player2 === null) {
+                // 轮空，已经自动处理
+                return;
+            }
+            
+            const score1 = parseInt(document.getElementById(`score_${matchIndex}_1`).value) || 0;
+            const score2 = parseInt(document.getElementById(`score_${matchIndex}_2`).value) || 0;
+            
+            if (score1 === 0 && score2 === 0) {
+                alert('请输入比赛结果分数');
+                return;
+            }
+            
+            // 检查分数是否合法
+            const validScores = [0, tournament.settings.drawPoints, tournament.settings.winPoints];
+            if (!validScores.includes(score1) || !validScores.includes(score2)) {
+                alert(`分数只能是: 0, ${tournament.settings.drawPoints}(平局), ${tournament.settings.winPoints}(胜)`);
+                return;
+            }
+            
+            match.result = {
+                player1: score1,
+                player2: score2
+            };
+            
+            // 更新选手数据
+            updatePlayerFromMatch(match.player1.id, match.player2.id, score1, score2);
+            updatePlayerFromMatch(match.player2.id, match.player1.id, score2, score1);
+            
+            // 保存到历史
+            tournament.history.push({
+                round: tournament.currentRound,
+                match: {
+                    player1: match.player1.name,
+                    player2: match.player2.name,
+                    result: match.result
+                },
+                timestamp: Date.now()
+            });
+            
+            saveTournament();
+            renderPairings();
+            updateStats();
+            renderRanking();
+            updateSubmitAllButton();
+            updateProgress();
+            
+            showCollaborationAlert(`比赛结果已提交: ${match.player1.name} ${score1}:${score2} ${match.player2.name}`);
+        }
+
+        // 更新选手数据
+        function updatePlayerFromMatch(playerId, opponentId, score, opponentScore) {
+            const player = tournament.players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            player.score += score;
+            if (!player.opponents.includes(opponentId)) {
+                player.opponents.push(opponentId);
+            }
+            
+            const winPoints = tournament.settings.winPoints;
+            const drawPoints = tournament.settings.drawPoints;
+            
+            if (score === winPoints) {
+                player.wins++;
+            } else if (score === drawPoints) {
+                player.draws++;
+            } else if (score === 0) {
+                player.losses++;
+            }
+            
+            player.matchHistory.push({
+                round: tournament.currentRound,
+                opponent: opponentId,
+                score: score,
+                opponentScore: opponentScore
+            });
+        }
+
+        // 开始下一轮
+        function startNextRound() {
+            if (tournament.tournamentEnded) {
+                showCollaborationAlert('比赛已结束，无法开始下一轮', 'warning');
+                return;
+            }
+            
+            if (tournament.currentRound >= tournament.totalRounds) {
+                alert('所有轮次已完成！');
+                return;
+            }
+            
+            // 检查未完成比赛
+            const incompleteMatches = tournament.pairings.filter(m => m.result === null && m.player2 !== null);
+            if (incompleteMatches.length > 0) {
+                if (!confirm(`还有${incompleteMatches.length}场比赛未完成，确定开始下一轮吗？`)) {
+                    return;
+                }
+            }
+            
+            tournament.pairings = [];
+            generatePairings();
+        }
+
+        // 自动生成本轮结果
+        function autoGenerateResults() {
+            if (tournament.tournamentEnded) {
+                showCollaborationAlert('比赛已结束', 'warning');
+                return;
+            }
+            
+            if (tournament.pairings.length === 0) {
+                alert('请先生成本轮对战表');
+                return;
+            }
+            
+            if (!confirm('这将为所有未完成的比赛自动生成结果，确定继续吗？')) {
+                return;
+            }
+            
+            let generated = 0;
+            tournament.pairings.forEach((match, index) => {
+                if (match.result === null && match.player2 !== null) {
+                    // 基于实力随机生成结果
+                    const p1Strength = match.player1.score + match.player1.rating / 100;
+                    const p2Strength = match.player2.score + match.player2.rating / 100;
+                    const totalStrength = p1Strength + p2Strength;
+                    
+                    let score1, score2;
+                    const rand = Math.random();
+                    
+                    if (rand < p1Strength / totalStrength * 0.6) {
+                        // player1胜
+                        score1 = tournament.settings.winPoints;
+                        score2 = 0;
+                    } else if (rand < p1Strength / totalStrength * 0.6 + p2Strength / totalStrength * 0.6) {
+                        // player2胜
+                        score1 = 0;
+                        score2 = tournament.settings.winPoints;
+                    } else {
+                        // 平局
+                        score1 = tournament.settings.drawPoints;
+                        score2 = tournament.settings.drawPoints;
+                    }
+                    
+                    match.result = { player1: score1, player2: score2 };
+                    
+                    // 更新选手数据
+                    updatePlayerFromMatch(match.player1.id, match.player2.id, score1, score2);
+                    updatePlayerFromMatch(match.player2.id, match.player1.id, score2, score1);
+                    
+                    // 保存到历史
+                    tournament.history.push({
+                        round: tournament.currentRound,
+                        match: {
+                            player1: match.player1.name,
+                            player2: match.player2.name,
+                            result: match.result
+                        },
+                        timestamp: Date.now()
+                    });
+                    
+                    generated++;
+                }
+            });
+            
+            saveTournament();
+            renderPairings();
+            updateStats();
+            renderRanking();
+            updateSubmitAllButton();
+            updateProgress();
+            showCollaborationAlert(`已自动生成${generated}场比赛结果`);
+        }
+
+        // 清空对战表
+        function clearPairings() {
+            if (!confirm('确定清空对战表吗？')) return;
+            
+            tournament.pairings = [];
+            saveTournament();
+            renderPairings();
+            updateSubmitAllButton();
+            updateProgress();
+            showCollaborationAlert('对战表已清空');
+        }
+
+        // 重置本轮
+        function resetCurrentRound() {
+            if (!confirm('确定重置本轮比赛吗？所有本轮结果将被清除')) {
+                return;
+            }
+            
+            // 撤销本轮比赛对选手的影响
+            tournament.pairings.forEach(match => {
+                if (match.result && match.player2) {
+                    revertPlayerMatch(match.player1.id, match.player2.id, match.result.player1);
+                    revertPlayerMatch(match.player2.id, match.player1.id, match.result.player2);
+                }
+            });
+            
+            tournament.pairings = [];
+            tournament.currentRound = Math.max(0, tournament.currentRound - 1);
+            saveTournament();
+            renderPairings();
+            updateStats();
+            renderRanking();
+            updateSubmitAllButton();
+            updateProgress();
+            showCollaborationAlert('本轮已重置');
+        }
+
+        // 回退选手比赛数据
+        function revertPlayerMatch(playerId, opponentId, score) {
+            const player = tournament.players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            player.score -= score;
+            player.opponents = player.opponents.filter(id => id !== opponentId);
+            
+            const winPoints = tournament.settings.winPoints;
+            const drawPoints = tournament.settings.drawPoints;
+            
+            if (score === winPoints) {
+                player.wins = Math.max(0, player.wins - 1);
+            } else if (score === drawPoints) {
+                player.draws = Math.max(0, player.draws - 1);
+            } else if (score === 0) {
+                player.losses = Math.max(0, player.losses - 1);
+            }
+            
+            // 移除比赛历史
+            player.matchHistory = player.matchHistory.filter(m => 
+                !(m.round === tournament.currentRound + 1 && m.opponent === opponentId)
+            );
+        }
+
+        // 渲染排名
+        function renderRanking() {
+            calculateHiddenScores();
+            
+            // 排序选手
+            const sortedPlayers = [...tournament.players].sort((a, b) => {
+                const totalA = a.score + a.hiddenScore;
+                const totalB = b.score + b.hiddenScore;
+                if (Math.abs(totalB - totalA) > 0.01) return totalB - totalA;
+                return b.score - a.score;
+            });
+            
+            const container = document.getElementById('rankingList');
+            container.innerHTML = '';
+            
+            if (sortedPlayers.length === 0) {
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-3">
+                            <i class="bi bi-trophy"></i> 暂无选手数据
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            sortedPlayers.forEach((player, index) => {
+                const totalScore = player.score + player.hiddenScore;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <span class="badge ${index < 3 ? 'bg-warning' : 'bg-secondary'} rounded-pill">
+                            ${index + 1}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="fw-bold">${player.name}</div>
+                        <small class="text-muted">${player.rating}分</small>
+                    </td>
+                    <td><span class="badge bg-primary">${player.score}</span></td>
+                    <td>${player.hiddenScore.toFixed(1)}</td>
+                    <td><strong>${totalScore.toFixed(1)}</strong></td>
+                    <td>${player.wins}</td>
+                    <td>${player.draws}</td>
+                    <td>${player.losses}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" onclick="showPlayerHistory(${player.id})" title="查看历史">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+            
+            // 显示前三名
+            if (sortedPlayers.length >= 3) {
+                document.getElementById('topThree').style.display = 'flex';
+                document.getElementById('firstPlace').textContent = sortedPlayers[0].name;
+                document.getElementById('firstScore').textContent = (sortedPlayers[0].score + sortedPlayers[0].hiddenScore).toFixed(1) + '分';
+                document.getElementById('secondPlace').textContent = sortedPlayers[1].name;
+                document.getElementById('secondScore').textContent = (sortedPlayers[1].score + sortedPlayers[1].hiddenScore).toFixed(1) + '分';
+                document.getElementById('thirdPlace').textContent = sortedPlayers[2].name;
+                document.getElementById('thirdScore').textContent = (sortedPlayers[2].score + sortedPlayers[2].hiddenScore).toFixed(1) + '分';
+            } else {
+                document.getElementById('topThree').style.display = 'none';
+            }
+        }
+
+        // 显示选手历史
+        function showPlayerHistory(playerId) {
+            const player = tournament.players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            let historyText = `<strong>${player.name} 的比赛历史：</strong>\n\n`;
+            
+            if (player.matchHistory.length === 0) {
+                historyText += "暂无比赛记录";
+            } else {
+                player.matchHistory.forEach(match => {
+                    const opponent = tournament.players.find(p => p.id === match.opponent);
+                    if (opponent) {
+                        const result = match.score > match.opponentScore ? "胜" : 
+                                     match.score < match.opponentScore ? "负" : "平";
+                        historyText += `第${match.round}轮: vs ${opponent.name} ${match.score}:${match.opponentScore} (${result})\n`;
+                    }
+                });
+            }
+            
+            alert(historyText);
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            document.getElementById('playerCount').textContent = tournament.players.length;
+            document.getElementById('currentRound').textContent = tournament.currentRound;
+            
+            // 计算已完成比赛
+            const completedMatches = tournament.pairings.filter(m => m.result !== null).length;
+            document.getElementById('completedMatches').textContent = completedMatches;
+            
+            // 计算平均得分
+            if (tournament.players.length > 0) {
+                const totalScore = tournament.players.reduce((sum, p) => sum + p.score, 0);
+                const avgScore = totalScore / tournament.players.length;
+                document.getElementById('averageScore').textContent = avgScore.toFixed(1);
+            }
+        }
+
+        // 保存设置
+        function saveSettings() {
+            tournament.totalRounds = parseInt(document.getElementById('totalRounds').value) || 4;
+            tournament.settings.winPoints = parseInt(document.getElementById('winPoints').value) || 7;
+            tournament.settings.drawPoints = parseInt(document.getElementById('drawPoints').value) || 3;
+            tournament.settings.hiddenWeight = parseFloat(document.getElementById('hiddenWeight').value) || 0.01;
+            tournament.settings.avoidRematch = document.getElementById('avoidRematch').checked;
+            
+            saveTournament();
+            showCollaborationAlert('设置已保存');
+        }
+
+        // 分享锦标赛
+        function shareTournament() {
+            const roomId = tournament.collaboration.roomId;
+            const url = window.location.href.split('?')[0] + '?room=' + roomId;
+            
+            navigator.clipboard.writeText(url).then(() => {
+                showCollaborationAlert('分享链接已复制到剪贴板', 'success');
+            }).catch(err => {
+                alert('复制失败，请手动复制房间ID: ' + roomId);
+            });
+        }
+
+        // 保存锦标赛数据
+        function saveTournament() {
+            localStorage.setItem('swiss_tournament_data', JSON.stringify(tournament));
+        }
+
+        // 加载锦标赛数据
+        function loadTournament() {
+            const saved = localStorage.getItem('swiss_tournament_data');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    
+                    // 合并数据，保留现有结构
+                    tournament.players = data.players || [];
+                    tournament.currentRound = data.currentRound || 0;
+                    tournament.totalRounds = data.totalRounds || 4;
+                    tournament.pairings = data.pairings || [];
+                    tournament.history = data.history || [];
+                    tournament.tournamentEnded = data.tournamentEnded || false;
+                    tournament.settings = data.settings || tournament.settings;
+                    tournament.collaboration = data.collaboration || tournament.collaboration;
+                    
+                    // 确保选手数据结构完整
+                    tournament.players.forEach(player => {
+                        player.wins = player.wins || 0;
+                        player.draws = player.draws || 0;
+                        player.losses = player.losses || 0;
+                        player.opponents = player.opponents || [];
+                        player.matchHistory = player.matchHistory || [];
+                        player.hiddenScore = player.hiddenScore || 0;
+                        player.rating = player.rating || 1500;
+                    });
+                    
+                    // 加载设置到表单
+                    document.getElementById('totalRounds').value = tournament.totalRounds;
+                    document.getElementById('winPoints').value = tournament.settings.winPoints;
+                    document.getElementById('drawPoints').value = tournament.settings.drawPoints;
+                    document.getElementById('hiddenWeight').value = tournament.settings.hiddenWeight;
+                    document.getElementById('avoidRematch').checked = tournament.settings.avoidRematch;
+                    
+                    // 更新UI
+                    renderPlayersList();
+                    renderRanking();
+                    updateStats();
+                    updateGenerateButton();
+                    updateSubmitAllButton();
+                    updateProgress();
+                    
+                    if (tournament.currentRound > 0) {
+                        renderPairings();
+                        document.getElementById('pairingRound').textContent = tournament.currentRound;
+                    }
+                    
+                    // 更新下一轮按钮状态
+                    const nextBtn = document.getElementById('nextRoundBtn');
+                    nextBtn.disabled = tournament.currentRound >= tournament.totalRounds || tournament.tournamentEnded;
+                    
+                } catch (e) {
+                    console.error('加载数据失败:', e);
+                }
+            }
+        }
+
+        // 导出排名
+        function exportRanking() {
+            calculateHiddenScores();
+            const sortedPlayers = [...tournament.players].sort((a, b) => {
+                const totalA = a.score + a.hiddenScore;
+                const totalB = b.score + b.hiddenScore;
+                return totalB - totalA;
+            });
+            
+            let csv = '排名,选手,得分,隐藏分,总分,胜,平,负\n';
+            sortedPlayers.forEach((player, index) => {
+                const totalScore = player.score + player.hiddenScore;
+                csv += `${index + 1},${player.name},${player.score},${player.hiddenScore.toFixed(2)},${totalScore.toFixed(2)},${player.wins},${player.draws},${player.losses}\n`;
+            });
+            
+            downloadCSV(csv, `瑞士轮排名_第${tournament.currentRound}轮.csv`);
+        }
+
+        // 导出选手列表
+        function exportPlayers() {
+            let csv = '姓名,评分,得分,胜,平,负,隐藏分\n';
+            tournament.players.forEach(player => {
+                csv += `${player.name},${player.rating},${player.score},${player.wins},${player.draws},${player.losses},${player.hiddenScore.toFixed(2)}\n`;
+            });
+            
+            downloadCSV(csv, '选手列表.csv');
+        }
+
+        // 下载CSV文件
+        function downloadCSV(csv, filename) {
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            showCollaborationAlert('文件已开始下载', 'success');
+        }
+
+        // 按得分排序
+        function sortPlayersByScore() {
+            tournament.players.sort((a, b) => {
+                const totalA = a.score + a.hiddenScore;
+                const totalB = b.score + b.hiddenScore;
+                return totalB - totalA;
+            });
+            renderPlayersList();
+        }
+    </script>
+</body>
+</html>
